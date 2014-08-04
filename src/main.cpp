@@ -35,7 +35,7 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2");
+uint256 hashGenesisBlock("0x146f53887f108158d9a23d7f2bf9dfed0ab00c3e4ca368a9159b954fe6c43b9d");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20); // Ojetecoin: starting difficulty is 1 / 2^12
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -1084,7 +1084,7 @@ uint256 static GetOrphanRoot(const CBlockHeader* pblock)
 
 int64 static GetBlockValue(int nHeight, int64 nFees)
 {
-    int64 nSubsidy = 50 * COIN;
+    int64 nSubsidy = 1 * COIN;
 
     // Subsidy is cut in half every 840000 blocks, which will occur approximately every 4 years
     nSubsidy >>= (nHeight / 840000); // Ojetecoin: 840k blocks in ~4 years
@@ -1092,8 +1092,8 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
     return nSubsidy + nFees;
 }
 
-static const int64 nTargetTimespan = 3.5 * 24 * 60 * 60; // Ojetecoin: 3.5 days
-static const int64 nTargetSpacing = 2.5 * 60; // Ojetecoin: 2.5 minutes
+static const int64 nTargetTimespan = 1 * 24 * 60 * 60; // Ojetecoin: 3.5 days
+static const int64 nTargetSpacing = 1 * 60; // Ojetecoin: 2.5 minutes
 static const int64 nInterval = nTargetTimespan / nTargetSpacing;
 
 //
@@ -2746,7 +2746,7 @@ bool LoadBlockIndex()
         pchMessageStart[1] = 0xc1;
         pchMessageStart[2] = 0xb7;
         pchMessageStart[3] = 0xdc;
-        hashGenesisBlock = uint256("0xf5ae71e26c74beacc88382716aced69cddf3dffff24f384e1808905e0188f68f");
+        hashGenesisBlock = uint256("0x146f53887f108158d9a23d7f2bf9dfed0ab00c3e4ca368a9159b954fe6c43b9d");
     }
 
     //
@@ -2779,13 +2779,13 @@ bool InitBlockIndex() {
         //   vMerkleTree: 97ddfbbae6
 
         // Genesis block
-        const char* pszTimestamp = "A stupid developer, namely myself, decides to create the most ridiculous cryptocurrency ever";
+        const char* pszTimestamp = "Me pica el ojete, no sé qué voy a hacer: lavarse es de cobardes, pero voy a fenecer";
         CTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-        txNew.vout[0].nValue = 50 * COIN;
-        txNew.vout[0].scriptPubKey = CScript() << ParseHex("040184710fa689ad5023690c80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe1b51850b4acf21b179c45070ac7b03a9") << OP_CHECKSIG;
+        txNew.vout[0].nValue = 1 * COIN;
+        txNew.vout[0].scriptPubKey = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
         CBlock block;
         block.vtx.push_back(txNew);
         block.hashPrevBlock = 0;
@@ -2793,12 +2793,12 @@ bool InitBlockIndex() {
         block.nVersion = 1;
         block.nTime    = 1406999564;
         block.nBits    = 0x1e0ffff0;
-        block.nNonce   = 2084524493;
+        block.nNonce   = 271268;
 
         if (fTestNet)
         {
             block.nTime    = 1406999564;
-            block.nNonce   = 385270584;
+            block.nNonce   = 271268;
         }
 
         //// debug print
@@ -2806,8 +2806,41 @@ bool InitBlockIndex() {
         printf("%s\n", hash.ToString().c_str());
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
-        assert(block.hashMerkleRoot == uint256("0x97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9"));
-        block.print();
+        assert(block.hashMerkleRoot == uint256("0x3171ec219f6cb8f8f509f4b5d019f2a3c0b6ef573f5a8fe2a76e45d39df0fc04"));
+        
+ // If genesis block hash does not match, then generate new genesis hash.
+if (false && block.GetHash() != hashGenesisBlock)
+{
+printf("Searching for genesis block...\n");
+// This will figure out a valid hash and Nonce if you're
+// creating a different genesis block:
+uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
+uint256 thash;
+char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
+ 
+loop
+{
+scrypt_1024_1_1_256_sp_generic(BEGIN(block.nVersion), BEGIN(thash), scratchpad);
+if (thash <= hashTarget)
+break;
+if ((block.nNonce & 0xFFF) == 0)
+{
+printf("nonce %08X: hash = %s (target = %s)\n", block.nNonce, thash.ToString().c_str(), hashTarget.ToString().c_str());
+}
+++block.nNonce;
+if (block.nNonce == 0)
+{
+printf("NONCE WRAPPED, incrementing time\n");
+++block.nTime;
+}
+}
+printf("block.nTime = %u \n", block.nTime);
+printf("block.nNonce = %u \n", block.nNonce);
+printf("block.GetHash = %s\n", block.GetHash().ToString().c_str());
+}
+
+	block.print();
+
         assert(hash == hashGenesisBlock);
 
         // Start new block file
