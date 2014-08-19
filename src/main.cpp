@@ -1092,8 +1092,8 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
     return nSubsidy + nFees;
 }
 
-static const int64 nTargetTimespan = 1 * 24 * 60 * 60; // Ojetecoin: 3.5 days
-static const int64 nTargetSpacing = 1 * 60; // Ojetecoin: 2.5 minutes
+static const int64 nTargetTimespan = 1 * 24 * 60 * 60; // Ojetecoin: 1 days
+static const int64 nTargetSpacing = 1 * 60; // Ojetecoin: 1 minute
 static const int64 nInterval = nTargetTimespan / nTargetSpacing;
 
 //
